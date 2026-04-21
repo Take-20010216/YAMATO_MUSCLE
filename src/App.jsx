@@ -9,6 +9,7 @@ const FINISH_COMMENTS = [
   "JD思考でいこう！！",
   "SSsuper魂！！",
   "水球パワー！！",
+  "めちゃくちゃ頑張ってるよ！",
   "今日もやりきった、さすが！",
   "続けてる自分、誇っていいぞ！",
   "その調子！俺と一緒に頑張ろう！",
@@ -355,7 +356,7 @@ function AddExModal({ onAdd, onClose, exercises, onAddExercise }) {
       ) : (
         <div style={{ marginBottom: 16 }}>
           <FieldLabel>新しい種目名</FieldLabel>
-          <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <input
               type="text"
               value={newName}
@@ -365,10 +366,12 @@ function AddExModal({ onAdd, onClose, exercises, onAddExercise }) {
               autoFocus
               onFocus={() => setFocused(true)}
               onBlur={() => setFocused(false)}
-              style={{ flex: 1, background: "#161616", border: `1.5px solid ${focused ? "#FF3B30" : "#222"}`, borderRadius: 8, color: "#fff", fontFamily: "'Noto Sans JP', sans-serif", fontSize: 14, padding: "10px 12px", outline: "none", transition: "border-color .15s" }}
+              style={{ width: "100%", background: "#161616", border: `1.5px solid ${focused ? "#FF3B30" : "#222"}`, borderRadius: 8, color: "#fff", fontFamily: "'Noto Sans JP', sans-serif", fontSize: 14, padding: "12px", outline: "none", transition: "border-color .15s" }}
             />
-            <button onClick={handleAddNew} disabled={!newName.trim()} style={{ background: newName.trim() ? "#FF3B30" : "#222", border: "none", borderRadius: 8, color: "#fff", fontFamily: "'IBM Plex Mono', monospace", fontSize: 13, fontWeight: 700, padding: "0 14px", cursor: newName.trim() ? "pointer" : "default", transition: "background .15s", flexShrink: 0 }}>登録</button>
-            <button onClick={() => { setShowAdd(false); setNewName(""); }} style={{ background: "transparent", border: "1px solid #222", borderRadius: 8, color: "#555", fontFamily: "'IBM Plex Mono', monospace", fontSize: 12, padding: "0 12px", cursor: "pointer", flexShrink: 0 }}>✕</button>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 8 }}>
+              <button onClick={handleAddNew} disabled={!newName.trim()} style={{ background: newName.trim() ? "#FF3B30" : "#333", border: "none", borderRadius: 8, color: "#fff", fontFamily: "'Noto Sans JP', sans-serif", fontSize: 14, fontWeight: 700, padding: "12px", cursor: newName.trim() ? "pointer" : "default", transition: "background .15s" }}>登録する</button>
+              <button onClick={() => { setShowAdd(false); setNewName(""); }} style={{ background: "transparent", border: "1px solid #333", borderRadius: 8, color: "#666", fontSize: 14, padding: "12px 16px", cursor: "pointer" }}>✕</button>
+            </div>
           </div>
         </div>
       )}
@@ -413,9 +416,9 @@ function AddSetModal({ exercise, onAdd, onClose }) {
 function PrToast({ message, onDone }) {
   useEffect(() => { const t = setTimeout(onDone, 3000); return () => clearTimeout(t); }, []);
   return (
-    <div className="pr-toast" style={{ position: "fixed", top: 70, left: "50%", transform: "translateX(-50%)", zIndex: 300, background: "#1a1200", border: "1.5px solid #FFD700", borderRadius: 12, padding: "12px 20px", display: "flex", alignItems: "center", gap: 10, whiteSpace: "nowrap", boxShadow: "0 0 20px rgba(255,215,0,0.2)" }}>
-      <span style={{ fontSize: 20 }}>🏆</span>
-      <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 13, fontWeight: 700, color: "#FFD700" }}>{message}</span>
+    <div className="pr-toast" style={{ position: "fixed", top: 70, left: "50%", transform: "translateX(-50%)", zIndex: 300, background: "#1a1200", border: "1.5px solid #FFD700", borderRadius: 12, padding: "12px 16px", display: "flex", alignItems: "center", gap: 10, boxShadow: "0 0 20px rgba(255,215,0,0.2)", maxWidth: "calc(100vw - 32px)", width: "max-content" }}>
+      <span style={{ fontSize: 18, flexShrink: 0 }}>🏆</span>
+      <span style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 13, fontWeight: 700, color: "#FFD700", whiteSpace: "nowrap" }}>{message}</span>
     </div>
   );
 }
