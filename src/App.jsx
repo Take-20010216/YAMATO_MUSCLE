@@ -1,15 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 
-const EXERCISES = [
-  "ベンチプレス","インクラインベンチプレス","デクラインベンチプレス","ダンベルフライ","ケーブルクロスオーバー","ペックデック","ディップス",
-  "スクワット","フロントスクワット","レッグプレス","レッグカール","レッグエクステンション","カーフレイズ","ブルガリアンスクワット","ルーマニアンデッドリフト",
-  "デッドリフト","スモウデッドリフト","ラックプル",
-  "ショルダープレス","アーノルドプレス","サイドレイズ","フロントレイズ","リアデルトフライ","フェイスプル","アップライトロウ","シュラッグ",
-  "ラットプルダウン","チンニング","ベントオーバーロウ","シーテッドロウ","ワンアームロウ","Tバーロウ",
-  "バーベルカール","ダンベルカール","ハンマーカール","インクラインカール",
-  "トライセプスプレスダウン","スカルクラッシャー","ナロープレス","オーバーヘッドエクステンション",
-  "ヒップスラスト","クランチ","プランク","レッグレイズ","ロシアンツイスト"
-];
+// 初回デフォルト種目（ユーザーが編集可能）
+const DEFAULT_EXERCISES = ["ベンチプレス","スクワット","デッドリフト","ショルダープレス","ラットプルダウン"];
 
 const FINISH_COMMENTS = [
   "最高のワークアウトだったな！",
@@ -134,7 +126,7 @@ function AssistCheck({ value, onChange }) {
   );
 }
 
-function ExSelect({ label, value, onChange, exclude = [] }) {
+function ExSelect({ label, value, onChange, exclude = [], exercises = [] }) {
   const [focused, setFocused] = useState(false);
   return (
     <div>
@@ -148,7 +140,7 @@ function ExSelect({ label, value, onChange, exclude = [] }) {
           backgroundRepeat: "no-repeat", backgroundPosition: "right 12px center",
           transition: "border-color .15s", cursor: "pointer" }}>
         <option value="">種目を選択...</option>
-        {EXERCISES.filter(e => !exclude.includes(e)).map(e => <option key={e} value={e}>{e}</option>)}
+        {exercises.filter(e => !exclude.includes(e)).map(e => <option key={e} value={e}>{e}</option>)}
       </select>
     </div>
   );
@@ -307,34 +299,77 @@ function Sheet({ onClose, children }) {
   );
 }
 
-function AddExModal({ onAdd, onClose }) {
+function AddExModal({ onAdd, onClose, exercises, onAddExercise }) {
   const [type, setType] = useState("normal");
   const [ex1, setEx1] = useState("");
   const [ex2, setEx2] = useState("");
+  const [newName, setNewName] = useState("");
+  const [showAdd, setShowAdd] = useState(false);
+  const [focused, setFocused] = useState(false);
+
   const valid = ex1 && (type !== "superset" || ex2);
+
   const confirm = () => {
     if (!valid) return;
     onAdd({ id: Date.now(), type, exercise: type !== "superset" ? ex1 : undefined, exercise1: type === "superset" ? ex1 : undefined, exercise2: type === "superset" ? ex2 : undefined, sets: [] });
     onClose();
   };
+
+  const handleAddNew = () => {
+    const trimmed = newName.trim();
+    if (!trimmed || exercises.includes(trimmed)) return;
+    onAddExercise(trimmed);
+    setNewName("");
+    setShowAdd(false);
+  };
+
   return (
     <Sheet onClose={onClose}>
       <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 24, letterSpacing: "2px", marginBottom: 18 }}>種目を追加</div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 20 }}>
         {Object.entries(TYPE_CONFIG).map(([k, { label, icon, color, bg, border }]) => {
-          const active = type === k;
+          const act = type === k;
           return (
-            <button key={k} onClick={() => setType(k)} style={{ background: active ? bg : "#080808", border: `1.5px solid ${active ? border : "#1a1a1a"}`, borderRadius: 12, padding: "13px 6px", cursor: "pointer", transition: "all .15s", textAlign: "center" }}>
-              <div style={{ fontSize: 18, marginBottom: 5, color: active ? color : "#333" }}>{icon}</div>
-              <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, fontWeight: 700, color: active ? color : "#444", letterSpacing: "1px" }}>{label}</div>
+            <button key={k} onClick={() => setType(k)} style={{ background: act ? bg : "#080808", border: `1.5px solid ${act ? border : "#1a1a1a"}`, borderRadius: 12, padding: "13px 6px", cursor: "pointer", transition: "all .15s", textAlign: "center" }}>
+              <div style={{ fontSize: 18, marginBottom: 5, color: act ? color : "#333" }}>{icon}</div>
+              <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, fontWeight: 700, color: act ? color : "#444", letterSpacing: "1px" }}>{label}</div>
             </button>
           );
         })}
       </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
-        <ExSelect label={type === "superset" ? "種目 1" : "種目"} value={ex1} onChange={setEx1} exclude={[ex2]} />
-        {type === "superset" && <ExSelect label="種目 2" value={ex2} onChange={setEx2} exclude={[ex1]} />}
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 16 }}>
+        <ExSelect label={type === "superset" ? "種目 1" : "種目"} value={ex1} onChange={setEx1} exclude={[ex2]} exercises={exercises} />
+        {type === "superset" && <ExSelect label="種目 2" value={ex2} onChange={setEx2} exclude={[ex1]} exercises={exercises} />}
       </div>
+
+      {!showAdd ? (
+        <button onClick={() => setShowAdd(true)} style={{ width: "100%", background: "transparent", border: "1px dashed #2a2a2a", borderRadius: 8, padding: "10px", color: "#555", fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, fontWeight: 600, cursor: "pointer", letterSpacing: "1px", marginBottom: 16, transition: "all .15s" }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor="#FF3B30"; e.currentTarget.style.color="#FF3B30"; }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor="#2a2a2a"; e.currentTarget.style.color="#555"; }}>
+          + 新しい種目を登録
+        </button>
+      ) : (
+        <div style={{ marginBottom: 16 }}>
+          <FieldLabel>新しい種目名</FieldLabel>
+          <div style={{ display: "flex", gap: 8 }}>
+            <input
+              type="text"
+              value={newName}
+              onChange={e => setNewName(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && handleAddNew()}
+              placeholder="例: インクラインダンベルプレス"
+              autoFocus
+              onFocus={() => setFocused(true)}
+              onBlur={() => setFocused(false)}
+              style={{ flex: 1, background: "#161616", border: `1.5px solid ${focused ? "#FF3B30" : "#222"}`, borderRadius: 8, color: "#fff", fontFamily: "'Noto Sans JP', sans-serif", fontSize: 14, padding: "10px 12px", outline: "none", transition: "border-color .15s" }}
+            />
+            <button onClick={handleAddNew} disabled={!newName.trim()} style={{ background: newName.trim() ? "#FF3B30" : "#222", border: "none", borderRadius: 8, color: "#fff", fontFamily: "'IBM Plex Mono', monospace", fontSize: 13, fontWeight: 700, padding: "0 14px", cursor: newName.trim() ? "pointer" : "default", transition: "background .15s", flexShrink: 0 }}>登録</button>
+            <button onClick={() => { setShowAdd(false); setNewName(""); }} style={{ background: "transparent", border: "1px solid #222", borderRadius: 8, color: "#555", fontFamily: "'IBM Plex Mono', monospace", fontSize: 12, padding: "0 12px", cursor: "pointer", flexShrink: 0 }}>✕</button>
+          </div>
+        </div>
+      )}
+
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         <Btn variant="ghost" onClick={onClose}>キャンセル</Btn>
         <Btn variant="primary" onClick={confirm} disabled={!valid}>追加する</Btn>
@@ -468,7 +503,7 @@ function HomeScreen({ workouts, onStart, onView }) {
 
 /* ─── WORKOUT SCREEN ─── */
 
-function WorkoutScreen({ active, setActive, onFinish, onBack, workoutHistory }) {
+function WorkoutScreen({ active, setActive, onFinish, onBack, workoutHistory, exercises, onAddExercise }) {
   const [showAddEx, setShowAddEx] = useState(false);
   const [addSetForId, setAddSetForId] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -516,7 +551,7 @@ function WorkoutScreen({ active, setActive, onFinish, onBack, workoutHistory }) 
           + 種目を追加
         </button>
       </div>
-      {showAddEx && <AddExModal onAdd={addExercise} onClose={() => setShowAddEx(false)} />}
+      {showAddEx && <AddExModal onAdd={addExercise} onClose={() => setShowAddEx(false)} exercises={exercises} onAddExercise={onAddExercise} />}
       {targetEx && <AddSetModal exercise={targetEx} onAdd={set => addSet(targetEx.id, set)} onClose={() => setAddSetForId(null)} />}
       {prToast && <PrToast message={prToast} onDone={() => setPrToast(null)} />}
       {showConfirm && (
@@ -563,6 +598,7 @@ function DetailScreen({ workout, onBack }) {
 export default function App() {
   const [screen, setScreen] = useState("home");
   const [workouts, setWorkouts] = useState([]);
+  const [exercises, setExercises] = useState(DEFAULT_EXERCISES);
   const [active, setActive] = useState(null);
   const [detail, setDetail] = useState(null);
   const [celebrating, setCelebrating] = useState(null);
@@ -574,31 +610,41 @@ export default function App() {
     return () => document.head.removeChild(style);
   }, []);
 
-  // ロード: 起動時に1回だけ実行
+  // ロード
   useEffect(() => {
     try {
       const saved = localStorage.getItem("ym-workouts-v2");
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setWorkouts(parsed);
-        }
+        if (Array.isArray(parsed) && parsed.length > 0) setWorkouts(parsed);
       }
-    } catch(e) {
-      console.error("Load error:", e);
-    }
+    } catch(e) { console.error("Load workouts error:", e); }
+
+    try {
+      const savedEx = localStorage.getItem("ym-exercises-v1");
+      if (savedEx) {
+        const parsed = JSON.parse(savedEx);
+        if (Array.isArray(parsed) && parsed.length > 0) setExercises(parsed);
+      }
+    } catch(e) { console.error("Load exercises error:", e); }
   }, []);
 
-  // 自動保存: workoutsが変わるたびに保存
+  // 自動保存
   useEffect(() => {
     if (workouts.length > 0) {
-      try {
-        localStorage.setItem("ym-workouts-v2", JSON.stringify(workouts));
-      } catch(e) {
-        console.error("Save error:", e);
-      }
+      try { localStorage.setItem("ym-workouts-v2", JSON.stringify(workouts)); }
+      catch(e) { console.error("Save workouts error:", e); }
     }
   }, [workouts]);
+
+  useEffect(() => {
+    try { localStorage.setItem("ym-exercises-v1", JSON.stringify(exercises)); }
+    catch(e) { console.error("Save exercises error:", e); }
+  }, [exercises]);
+
+  const handleAddExercise = (name) => {
+    setExercises(prev => prev.includes(name) ? prev : [...prev, name]);
+  };
 
   const startWorkout = () => {
     setActive({ id: Date.now(), date: new Date().toISOString(), exercises: [] });
@@ -618,7 +664,7 @@ export default function App() {
   return (
     <div style={{ minHeight: "100vh", background: "#050505" }}>
       {screen === "home" && <HomeScreen workouts={workouts} onStart={startWorkout} onView={w => { setDetail(w); setScreen("detail"); }} />}
-      {screen === "workout" && active && <WorkoutScreen active={active} setActive={setActive} onFinish={finishWorkout} onBack={() => { setActive(null); setScreen("home"); }} workoutHistory={workouts} />}
+      {screen === "workout" && active && <WorkoutScreen active={active} setActive={setActive} onFinish={finishWorkout} onBack={() => { setActive(null); setScreen("home"); }} workoutHistory={workouts} exercises={exercises} onAddExercise={handleAddExercise} />}
       {screen === "detail" && <DetailScreen workout={detail} onBack={() => setScreen("home")} />}
       {celebrating && <CelebrationScreen workout={celebrating} onClose={() => setCelebrating(null)} />}
     </div>
