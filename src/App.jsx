@@ -574,18 +574,31 @@ export default function App() {
     return () => document.head.removeChild(style);
   }, []);
 
+  // ロード: 起動時に1回だけ実行
   useEffect(() => {
-    (async () => {
-      try {
-        const saved = localStorage.getItem("ym-workouts-v2");
-        if (saved) setWorkouts(JSON.parse(saved));
-      } catch {}
-    })();
+    try {
+      const saved = localStorage.getItem("ym-workouts-v2");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setWorkouts(parsed);
+        }
+      }
+    } catch(e) {
+      console.error("Load error:", e);
+    }
   }, []);
 
-  const persist = async data => {
-    try { localStorage.setItem("ym-workouts-v2", JSON.stringify(data)); } catch {}
-  };
+  // 自動保存: workoutsが変わるたびに保存
+  useEffect(() => {
+    if (workouts.length > 0) {
+      try {
+        localStorage.setItem("ym-workouts-v2", JSON.stringify(workouts));
+      } catch(e) {
+        console.error("Save error:", e);
+      }
+    }
+  }, [workouts]);
 
   const startWorkout = () => {
     setActive({ id: Date.now(), date: new Date().toISOString(), exercises: [] });
@@ -596,7 +609,6 @@ export default function App() {
     if (active?.exercises?.length) {
       const updated = [active, ...workouts];
       setWorkouts(updated);
-      persist(updated);
       setCelebrating(active);
     }
     setActive(null);
