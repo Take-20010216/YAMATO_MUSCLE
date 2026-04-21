@@ -13,22 +13,22 @@ const EXERCISES = [
 
 const FINISH_COMMENTS = [
   "最高のワークアウトだったな！",
-  "やばい、めちゃくちゃ強くなってる！",
+  "めちゃくちゃ頑張ってるよ！",
   "今日もやりきった、さすが！",
-  "これが毎日続けば最強だな！",
+  "続けてる自分、誇っていいぞ！",
   "その調子！俺と一緒に頑張ろう！",
-  "筋肉痛よりも達成感が勝ったな！",
+  "頑張ってるよ、ほんとに！",
   "ナイスワーク！明日も来いよ！",
   "今日のワークアウト、完璧すぎた！",
   "お前の努力、神レベルだわ！",
-  "また一歩、理想の体に近づいたな！",
+  "また一歩、理想の体に近づいた！",
   "やばい刺激入った！いい感じ！",
   "継続は力なり、マジでそれな！",
-  "今日のセット数、えぐいぞ！",
-  "ジムに来るだけで偉い！それに加えてこの内容！",
+  "今日のセット数えぐいぞ！",
+  "ジムに来るだけで偉い！",
   "筋肉喜んでるよ、絶対！",
-  "限界突破した感じある！！",
-  "今日の頑張り、絶対裏切らない！",
+  "限界突破した感じある！",
+  "今日の頑張り絶対裏切らない！",
   "お前の成長、俺も嬉しいよ！",
   "また明日もよろしく！",
   "今日も生き様見せたな！"
@@ -394,7 +394,7 @@ function CelebrationScreen({ workout, onClose }) {
         <div style={{ position: "relative", width: 180, height: 180, margin: "0 auto 24px", borderRadius: "50%", overflow: "hidden", border: "3px solid #FF3B30", boxShadow: "0 0 40px rgba(255,59,48,0.4)" }}>
           <img src={PHOTO} alt="Yamato" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />
         </div>
-        <div style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 20, fontWeight: 900, color: "#fff", lineHeight: 1.4, marginBottom: 20, padding: "0 10px" }}>{comment}</div>
+        <div style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 16, fontWeight: 900, color: "#fff", lineHeight: 1.7, marginBottom: 20, padding: "0 8px", wordBreak: "keep-all", overflowWrap: "break-word" }}>{comment}</div>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", marginBottom: 28 }}>
           <div style={{ background: "#111", border: "1px solid #222", borderRadius: 10, padding: "10px 18px", textAlign: "center" }}>
             <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 32, color: "#FF3B30" }}>{workout.exercises.length}</div>
@@ -577,14 +577,14 @@ export default function App() {
   useEffect(() => {
     (async () => {
       try {
-        const r = await window.storage.get("ym-workouts-v2");
-        if (r) setWorkouts(JSON.parse(r.value));
+        const saved = localStorage.getItem("ym-workouts-v2");
+        if (saved) setWorkouts(JSON.parse(saved));
       } catch {}
     })();
   }, []);
 
   const persist = async data => {
-    try { await window.storage.set("ym-workouts-v2", JSON.stringify(data)); } catch {}
+    try { localStorage.setItem("ym-workouts-v2", JSON.stringify(data)); } catch {}
   };
 
   const startWorkout = () => {
